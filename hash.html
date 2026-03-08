@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hashing & Crypto 101</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800&family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060810;
+  --s1: #0c0e16;
+  --s2: #11141e;
+  --s3: #161a26;
+  --border: #1c2030;
+  --border2: #242838;
+  --cyan: #00d4ff;
+  --cyan-dim: #0099bb;
+  --green: #00e5a0;
+  --yellow: #ffd60a;
+  --orange: #ff8c00;
+  --red: #ff3d5a;
+  --purple: #c084fc;
+  --blue: #4895ef;
+  --text: #dde3f0;
+  --dim: #6b7494;
+  --faint: #1e2235;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Familjen Grotesk', sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { background:var(--bg); color:var(--text); font-family:var(--sans); line-height:1.6; overflow-x:hidden; }
+
+/* scanlines */
+body::after {
+  content:'';
+  position:fixed;
+  inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,212,255,0.01) 3px,rgba(0,212,255,0.01) 4px);
+  pointer-events:none;
+  z-index:9999;
+}
+
+.wrap { max-width:900px; margin:0 auto; padding:0 24px; }
+
+/* HERO */
+.hero {
+  padding:64px 0 48px;
+  border-bottom:1px solid var(--border);
+  position:relative;
+  overflow:hidden;
+}
+.hero-bg {
+  position:absolute;
+  top:0;right:0;bottom:0;
+  width:50%;
+  background:radial-gradient(ellipse at 80% 50%, rgba(0,212,255,0.05) 0%, transparent 70%);
+  pointer-events:none;
+}
+.eyebrow {
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--cyan);
+  letter-spacing:4px;
+  text-transform:uppercase;
+  margin-bottom:16px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.eyebrow::before {
+  content:'';
+  display:block;
+  width:24px;
+  height:1px;
+  background:var(--cyan);
+}
+h1 {
+  font-size:clamp(42px,7vw,72px);
+  font-weight:800;
+  line-height:1;
+  color:#fff;
+  margin-bottom:16px;
+  letter-spacing:-1px;
+}
+h1 em { color:var(--cyan); font-style:normal; }
+.hero-sub { font-size:15px; color:var(--dim); max-width:540px; line-height:1.8; margin-bottom:24px; }
+.topic-pills { display:flex; flex-wrap:wrap; gap:8px; }
+.pill {
+  font-family:var(--mono);
+  font-size:10px;
+  padding:5px 12px;
+  border-radius:4px;
+  border:1px solid var(--border2);
+  color:var(--dim);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  text-decoration:none;
+  transition:all 0.15s;
+}
+.pill:hover { border-color:var(--cyan); color:var(--cyan); }
+
+/* STICKY NAV */
+.sticky-nav {
+  position:sticky;
+  top:0;
+  background:rgba(6,8,16,0.96);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  z-index:100;
+  overflow-x:auto;
+}
+.nav-inner {
+  display:flex;
+  white-space:nowrap;
+}
+.nav-item {
+  font-family:var(--mono);
+  font-size:11px;
+  padding:14px 20px;
+  color:var(--dim);
+  text-decoration:none;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  border-bottom:2px solid transparent;
+  transition:all 0.15s;
+  display:block;
+}
+.nav-item:hover { color:var(--text); }
+.nav-item.active { color:var(--cyan); border-bottom-color:var(--cyan); }
+
+/* SECTIONS */
+.sec {
+  padding:56px 0;
+  border-bottom:1px solid var(--border);
+  animation:rise 0.4s ease both;
+}
+@keyframes rise { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.sec-tag {
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--cyan);
+  letter-spacing:4px;
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+h2 {
+  font-size:32px;
+  font-weight:800;
+  color:#fff;
+  margin-bottom:8px;
+  line-height:1.1;
+  letter-spacing:-0.5px;
+}
+h2 .c { color:var(--cyan); }
+h2 .g { color:var(--green); }
+h2 .y { color:var(--yellow); }
+.sec-intro { font-size:14px; color:var(--dim); max-width:640px; line-height:1.8; margin-bottom:32px; }
+
+h3 {
+  font-family:var(--mono);
+  font-size:11px;
+  font-weight:700;
+  color:var(--yellow);
+  letter-spacing:3px;
+  text-transform:uppercase;
+  margin:28px 0 12px;
+}
+p { font-size:14px; color:var(--dim); margin-bottom:12px; line-height:1.8; }
+strong { color:var(--text); font-weight:600; }
+code {
+  font-family:var(--mono);
+  font-size:12px;
+  background:var(--s2);
+  border:1px solid var(--border);
+  padding:2px 6px;
+  border-radius:3px;
+  color:var(--cyan);
+}
+
+/* CODE BLOCKS */
+.cb {
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:8px;
+  overflow:hidden;
+  margin:16px 0;
+}
+.cb-bar {
+  background:var(--s2);
+  border-bottom:1px solid var(--border);
+  padding:8px 16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.cb-title { font-family:var(--mono); font-size:10px; color:var(--dim); letter-spacing:2px; text-transform:uppercase; }
+.cb-tag {
+  font-family:var(--mono);
+  font-size:10px;
+  padding:2px 8px;
+  border-radius:3px;
+  letter-spacing:1px;
+}
+.t-kali { background:rgba(0,212,255,0.08); color:var(--cyan); border:1px solid rgba(0,212,255,0.2); }
+.t-theory { background:rgba(0,229,160,0.08); color:var(--green); border:1px solid rgba(0,229,160,0.2); }
+.t-warn { background:rgba(255,61,90,0.08); color:var(--red); border:1px solid rgba(255,61,90,0.2); }
+pre {
+  padding:20px;
+  font-family:var(--mono);
+  font-size:12.5px;
+  line-height:2;
+  overflow-x:auto;
+  tab-size:2;
+}
+.cm { color:var(--faint); }
+.c2 { color:var(--dim); }
+.kw { color:var(--cyan); }
+.arg { color:var(--green); }
+.val { color:var(--yellow); }
+.out { color:var(--dim); }
+.ok { color:var(--green); font-weight:600; }
+.er { color:var(--red); }
+.hl { color:#fff; font-weight:700; }
+
+/* CONCEPT CARDS */
+.concept-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin:20px 0;
+}
+.concept-card {
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:20px;
+  position:relative;
+  overflow:hidden;
+  transition:border-color 0.2s;
+}
+.concept-card:hover { border-color:var(--border2); }
+.concept-card::before {
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:2px;
+}
+.cc-cyan::before { background:var(--cyan); }
+.cc-green::before { background:var(--green); }
+.cc-yellow::before { background:var(--yellow); }
+.cc-red::before { background:var(--red); }
+.cc-purple::before { background:var(--purple); }
+.cc-orange::before { background:var(--orange); }
+.concept-icon { font-size:28px; margin-bottom:10px; }
+.concept-title { font-weight:700; font-size:15px; color:#fff; margin-bottom:6px; }
+.concept-body { font-size:13px; color:var(--dim); line-height:1.7; }
+.concept-tag {
+  display:inline-block;
+  font-family:var(--mono);
+  font-size:10px;
+  padding:2px 8px;
+  border-radius:3px;
+  margin-top:8px;
+}
+.ct-cyan { background:rgba(0,212,255,0.08); color:var(--cyan); border:1px solid rgba(0,212,255,0.15); }
+.ct-green { background:rgba(0,229,160,0.08); color:var(--green); border:1px solid rgba(0,229,160,0.15); }
+.ct-red { background:rgba(255,61,90,0.08); color:var(--red); border:1px solid rgba(255,61,90,0.15); }
+.ct-yellow { background:rgba(255,214,10,0.08); color:var(--yellow); border:1px solid rgba(255,214,10,0.15); }
+
+/* HASH VISUALIZER */
+.hash-demo {
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:24px;
+  margin:20px 0;
+}
+.hash-demo-label { font-family:var(--mono); font-size:10px; color:var(--dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:16px; }
+.hash-input-row { display:flex; gap:10px; margin-bottom:16px; }
+.hash-input {
+  flex:1;
+  background:var(--s2);
+  border:1px solid var(--border2);
+  border-radius:6px;
+  padding:10px 14px;
+  font-family:var(--mono);
+  font-size:13px;
+  color:var(--text);
+  outline:none;
+  transition:border-color 0.15s;
+}
+.hash-input:focus { border-color:var(--cyan); }
+.hash-btn {
+  background:var(--cyan);
+  color:#060810;
+  border:none;
+  border-radius:6px;
+  padding:10px 20px;
+  font-family:var(--mono);
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  transition:all 0.15s;
+  white-space:nowrap;
+}
+.hash-btn:hover { filter:brightness(1.1); }
+.hash-results { display:flex; flex-direction:column; gap:10px; }
+.hash-result-row {
+  display:grid;
+  grid-template-columns:80px 1fr;
+  gap:10px;
+  align-items:start;
+}
+.hr-label {
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--dim);
+  padding:8px 0;
+  text-align:right;
+}
+.hr-value {
+  background:var(--s2);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:8px 12px;
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--cyan);
+  word-break:break-all;
+  line-height:1.6;
+  cursor:pointer;
+  transition:border-color 0.15s;
+}
+.hr-value:hover { border-color:var(--cyan); }
+.hr-value.empty { color:var(--faint); }
+
+/* AVALANCHE DEMO */
+.avalanche {
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:20px;
+  margin:16px 0;
+}
+.av-row {
+  display:grid;
+  grid-template-columns:140px 1fr;
+  gap:12px;
+  margin-bottom:12px;
+  align-items:center;
+}
+.av-input {
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--yellow);
+  background:var(--s2);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:6px 10px;
+}
+.av-hash {
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--green);
+  background:var(--s2);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:6px 10px;
+  word-break:break-all;
+  line-height:1.5;
+}
+.av-diff { color:var(--red) !important; }
+.av-note { font-family:var(--mono); font-size:10px; color:var(--dim); margin-top:4px; }
+
+/* ENCODING TABLE */
+.enc-table {
+  width:100%;
+  border-collapse:collapse;
+  font-family:var(--mono);
+  font-size:12px;
+  margin:16px 0;
+}
+.enc-table th {
+  background:var(--s2);
+  color:var(--cyan);
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  padding:10px 14px;
+  text-align:left;
+  border-bottom:1px solid var(--border);
+}
+.enc-table td {
+  padding:10px 14px;
+  border-bottom:1px solid rgba(28,32,48,0.8);
+  color:var(--dim);
+  vertical-align:top;
+}
+.enc-table tr:hover td { background:var(--s1); }
+.enc-table .name { color:var(--text); font-weight:600; }
+.enc-table .ex { color:var(--yellow); }
+.enc-table .use { color:var(--green); }
+.enc-table .rev { color:var(--cyan); }
+
+/* ALERT BOXES */
+.alert {
+  border-radius:8px;
+  padding:16px 20px;
+  margin:20px 0;
+  display:grid;
+  grid-template-columns:28px 1fr;
+  gap:14px;
+  align-items:start;
+  font-size:13px;
+}
+.alert.info { background:rgba(0,212,255,0.04); border:1px solid rgba(0,212,255,0.15); }
+.alert.warn { background:rgba(255,214,10,0.04); border:1px solid rgba(255,214,10,0.15); }
+.alert.danger { background:rgba(255,61,90,0.04); border:1px solid rgba(255,61,90,0.15); }
+.alert.success { background:rgba(0,229,160,0.04); border:1px solid rgba(0,229,160,0.15); }
+.alert-icon { font-size:18px; padding-top:1px; }
+.alert-title { font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:5px; }
+.alert.info .alert-title { color:var(--cyan); }
+.alert.warn .alert-title { color:var(--yellow); }
+.alert.danger .alert-title { color:var(--red); }
+.alert.success .alert-title { color:var(--green); }
+.alert-body { color:var(--dim); line-height:1.7; }
+.alert-body strong { color:var(--text); }
+
+/* CRACK CHALLENGE */
+.challenge {
+  background:var(--s1);
+  border:1px solid var(--border2);
+  border-radius:8px;
+  padding:24px;
+  margin:20px 0;
+}
+.challenge-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+.challenge-title { font-weight:700; font-size:16px; color:#fff; }
+.challenge-badge {
+  font-family:var(--mono);
+  font-size:10px;
+  padding:4px 10px;
+  border-radius:4px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+.badge-easy { background:rgba(0,229,160,0.1); color:var(--green); border:1px solid rgba(0,229,160,0.2); }
+.badge-medium { background:rgba(255,214,10,0.1); color:var(--yellow); border:1px solid rgba(255,214,10,0.2); }
+.badge-hard { background:rgba(255,61,90,0.1); color:var(--red); border:1px solid rgba(255,61,90,0.2); }
+.challenge-hash {
+  font-family:var(--mono);
+  font-size:12px;
+  background:var(--s2);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:12px 16px;
+  color:var(--yellow);
+  word-break:break-all;
+  margin-bottom:12px;
+  line-height:1.6;
+}
+.challenge-hint { font-family:var(--mono); font-size:11px; color:var(--dim); margin-bottom:16px; }
+.challenge-input-row { display:flex; gap:10px; }
+.challenge-input {
+  flex:1;
+  background:var(--s2);
+  border:1px solid var(--border2);
+  border-radius:6px;
+  padding:10px 14px;
+  font-family:var(--mono);
+  font-size:13px;
+  color:var(--text);
+  outline:none;
+  transition:border-color 0.15s;
+}
+.challenge-input:focus { border-color:var(--cyan); }
+.challenge-input.correct { border-color:var(--green); background:rgba(0,229,160,0.05); }
+.challenge-input.wrong { border-color:var(--red); background:rgba(255,61,90,0.05); }
+.check-btn {
+  background:var(--s2);
+  border:1px solid var(--border2);
+  color:var(--text);
+  border-radius:6px;
+  padding:10px 20px;
+  font-family:var(--mono);
+  font-size:12px;
+  cursor:pointer;
+  transition:all 0.15s;
+  white-space:nowrap;
+}
+.check-btn:hover { border-color:var(--cyan); color:var(--cyan); }
+.hint-btn {
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--dim);
+  border-radius:6px;
+  padding:10px 16px;
+  font-family:var(--mono);
+  font-size:11px;
+  cursor:pointer;
+  transition:all 0.15s;
+}
+.hint-btn:hover { border-color:var(--yellow); color:var(--yellow); }
+.challenge-result {
+  font-family:var(--mono);
+  font-size:12px;
+  padding:8px 12px;
+  border-radius:4px;
+  margin-top:10px;
+  display:none;
+}
+.cr-ok { background:rgba(0,229,160,0.08); color:var(--green); border:1px solid rgba(0,229,160,0.2); display:block; }
+.cr-no { background:rgba(255,61,90,0.08); color:var(--red); border:1px solid rgba(255,61,90,0.2); display:block; }
+.cr-hint { background:rgba(255,214,10,0.08); color:var(--yellow); border:1px solid rgba(255,214,10,0.2); display:block; }
+
+/* PROGRESS */
+.progress-bar {
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:16px 20px;
+  margin-bottom:24px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.progress-label { font-family:var(--mono); font-size:11px; color:var(--dim); white-space:nowrap; }
+.progress-track { flex:1; height:4px; background:var(--faint); border-radius:2px; }
+.progress-fill { height:100%; background:var(--cyan); border-radius:2px; transition:width 0.5s ease; }
+.progress-count { font-family:var(--mono); font-size:11px; color:var(--cyan); white-space:nowrap; }
+
+/* ENCODING INTERACTIVE */
+.enc-demo {
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:20px;
+  margin:16px 0;
+}
+.enc-tabs { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+.enc-tab {
+  font-family:var(--mono);
+  font-size:11px;
+  padding:6px 14px;
+  border-radius:4px;
+  border:1px solid var(--border2);
+  color:var(--dim);
+  cursor:pointer;
+  transition:all 0.15s;
+  background:transparent;
+}
+.enc-tab.active { background:rgba(0,212,255,0.1); border-color:rgba(0,212,255,0.3); color:var(--cyan); }
+.enc-io { display:grid; grid-template-columns:1fr auto 1fr; gap:12px; align-items:center; }
+.enc-field {
+  background:var(--s2);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:12px;
+}
+.ef-label { font-family:var(--mono); font-size:10px; color:var(--dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
+.ef-input {
+  width:100%;
+  background:transparent;
+  border:none;
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--text);
+  outline:none;
+  resize:none;
+  line-height:1.6;
+}
+.enc-arrow {
+  font-size:20px;
+  color:var(--dim);
+  text-align:center;
+}
+.enc-output {
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--yellow);
+  word-break:break-all;
+  line-height:1.6;
+  min-height:40px;
+}
+.enc-buttons { display:flex; gap:8px; margin-top:12px; }
+.enc-btn {
+  font-family:var(--mono);
+  font-size:11px;
+  padding:8px 16px;
+  border-radius:4px;
+  border:none;
+  cursor:pointer;
+  transition:all 0.15s;
+}
+.eb-encode { background:var(--cyan); color:#060810; font-weight:700; }
+.eb-decode { background:var(--s2); color:var(--dim); border:1px solid var(--border2); }
+.eb-decode:hover { border-color:var(--green); color:var(--green); }
+.eb-clear { background:transparent; color:var(--dim); border:1px solid var(--border); }
+.eb-clear:hover { border-color:var(--red); color:var(--red); }
+
+/* SALTING VISUAL */
+.salt-demo {
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:20px;
+  margin:16px 0;
+}
+.salt-row {
+  display:grid;
+  grid-template-columns:1fr auto 1fr auto 1fr;
+  gap:8px;
+  align-items:center;
+  margin-bottom:10px;
+  font-family:var(--mono);
+  font-size:12px;
+}
+.sr-box {
+  background:var(--s2);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:8px 10px;
+  text-align:center;
+}
+.sr-pass { color:var(--yellow); }
+.sr-salt { color:var(--purple); }
+.sr-hash { color:var(--green); font-size:10px; word-break:break-all; }
+.sr-arrow { color:var(--dim); text-align:center; }
+.salt-note { font-family:var(--mono); font-size:11px; color:var(--dim); margin-top:12px; padding-top:12px; border-top:1px solid var(--border); }
+
+footer {
+  padding:40px 0;
+  text-align:center;
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--faint);
+  letter-spacing:2px;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="eyebrow">// Hashing & Crypto 101</div>
+  <h1>Hashing &<br><em>Cryptography</em></h1>
+  <div class="hero-sub">Everything the TryHackMe premium room covers — hashing, encoding, encryption, salting, and cracking — taught hands-on with live demos and Kali practice.</div>
+  <div class="topic-pills">
+    <a href="#what" class="pill">What is Hashing</a>
+    <a href="#algos" class="pill">Algorithms</a>
+    <a href="#encoding" class="pill">Encoding</a>
+    <a href="#encryption" class="pill">Encryption</a>
+    <a href="#salting" class="pill">Salting</a>
+    <a href="#cracking" class="pill">Cracking</a>
+    <a href="#practice" class="pill">Practice</a>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="sticky-nav">
+  <div class="nav-inner">
+    <a href="#what" class="nav-item active">Hashing</a>
+    <a href="#algos" class="nav-item">Algorithms</a>
+    <a href="#encoding" class="nav-item">Encoding</a>
+    <a href="#encryption" class="nav-item">Encryption</a>
+    <a href="#salting" class="nav-item">Salting</a>
+    <a href="#cracking" class="nav-item">Cracking</a>
+    <a href="#practice" class="nav-item">Challenges</a>
+  </div>
+</div>
+
+<!-- SECTION 1: WHAT IS HASHING -->
+<div class="sec" id="what">
+  <div class="sec-tag">// 01</div>
+  <h2>What is <span class="c">Hashing</span>?</h2>
+  <div class="sec-intro">A hash function takes input of any size and produces a fixed-size output. It's a one-way mathematical function — fast to compute, impossible to reverse.</div>
+
+  <div class="concept-grid">
+    <div class="concept-card cc-cyan">
+      <div class="concept-icon">📥</div>
+      <div class="concept-title">Any Input Size</div>
+      <div class="concept-body">One character or one gigabyte — the hash output is always the same fixed length. "a" and the entire works of Shakespeare produce outputs of identical length.</div>
+      <div class="concept-tag ct-cyan">deterministic</div>
+    </div>
+    <div class="concept-card cc-green">
+      <div class="concept-icon">🔒</div>
+      <div class="concept-title">One-Way Only</div>
+      <div class="concept-body">Given a hash, you cannot compute the original input. There is no "unhash" function. This is the fundamental property that makes hashing useful for passwords.</div>
+      <div class="concept-tag ct-red">irreversible</div>
+    </div>
+    <div class="concept-card cc-yellow">
+      <div class="concept-icon">⚡</div>
+      <div class="concept-title">Avalanche Effect</div>
+      <div class="concept-body">Change a single character in the input and the entire hash output changes completely. "password" and "Password" produce totally different hashes.</div>
+      <div class="concept-tag ct-yellow">unpredictable</div>
+    </div>
+    <div class="concept-card cc-red">
+      <div class="concept-icon">❄️</div>
+      <div class="concept-title">Collision Resistance</div>
+      <div class="concept-body">Two different inputs should never produce the same hash. When this breaks (as with MD5/SHA1), the algorithm is considered cryptographically broken.</div>
+      <div class="concept-tag ct-red">unique output</div>
+    </div>
+  </div>
+
+  <h3>Live Hash Demo — Type Anything</h3>
+  <div class="hash-demo">
+    <div class="hash-demo-label">// Enter text → see hashes computed live</div>
+    <div class="hash-input-row">
+      <input class="hash-input" id="hashInput" type="text" placeholder="Type anything... e.g. password" oninput="computeHashes()" value="password">
+    </div>
+    <div class="hash-results" id="hashResults">
+      <div class="hash-result-row">
+        <div class="hr-label">MD5</div>
+        <div class="hr-value" id="r-md5" title="click to copy">—</div>
+      </div>
+      <div class="hash-result-row">
+        <div class="hr-label">SHA-1</div>
+        <div class="hr-value" id="r-sha1">—</div>
+      </div>
+      <div class="hash-result-row">
+        <div class="hr-label">SHA-256</div>
+        <div class="hr-value" id="r-sha256">—</div>
+      </div>
+      <div class="hash-result-row">
+        <div class="hr-label">Length</div>
+        <div class="hr-value" id="r-len" style="color:var(--purple)">—</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Avalanche Effect — See It Yourself</h3>
+  <div class="avalanche" id="avalanche">
+    <div class="av-row">
+      <div class="av-input">"password"</div>
+      <div class="av-hash" id="av1">computing...</div>
+    </div>
+    <div class="av-row">
+      <div class="av-input">"Password"</div>
+      <div class="av-hash" id="av2">computing...</div>
+    </div>
+    <div class="av-note" id="av-note">// One character changes (p→P) — watch how different the hashes are</div>
+  </div>
+
+  <div class="alert info">
+    <div class="alert-icon">💡</div>
+    <div>
+      <div class="alert-title">Why Linux Uses Hashing for Passwords</div>
+      <div class="alert-body">When you run <code>su - alice</code>, Linux hashes what you typed and compares it to the hash in <code>/etc/shadow</code>. The original password is <strong>never stored anywhere</strong>. Even root can't see it — only the hash exists. This is why cracking requires guessing forward, not reversing.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2: ALGORITHMS -->
+<div class="sec" id="algos">
+  <div class="sec-tag">// 02</div>
+  <h2>Hash <span class="c">Algorithms</span></h2>
+  <div class="sec-intro">Not all hash algorithms are equal. Some are broken, some are slow by design, some are fast by design. Knowing which is which tells you how hard it is to crack.</div>
+
+  <table class="enc-table">
+    <thead><tr><th>Algorithm</th><th>Output Size</th><th>Prefix in Shadow</th><th>Speed (GPU)</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="name">MD5</td>
+        <td>128-bit / 32 hex</td>
+        <td class="ex">(none) or $1$</td>
+        <td>100 billion/sec</td>
+        <td class="er">⚠ Broken — collisions known</td>
+      </tr>
+      <tr>
+        <td class="name">SHA-1</td>
+        <td>160-bit / 40 hex</td>
+        <td class="ex">(none)</td>
+        <td>30 billion/sec</td>
+        <td class="er">⚠ Broken — don't use</td>
+      </tr>
+      <tr>
+        <td class="name">SHA-256</td>
+        <td>256-bit / 64 hex</td>
+        <td class="ex">$5$ (sha256crypt)</td>
+        <td>10 billion/sec</td>
+        <td class="use">✓ Safe for integrity checks</td>
+      </tr>
+      <tr>
+        <td class="name">SHA-512</td>
+        <td>512-bit / 128 hex</td>
+        <td class="ex">$6$</td>
+        <td>800 million/sec</td>
+        <td class="use">✓ Common on Linux systems</td>
+      </tr>
+      <tr>
+        <td class="name">bcrypt</td>
+        <td>60 chars</td>
+        <td class="ex">$2b$ / $2y$</td>
+        <td>3,000/sec</td>
+        <td class="ok">★ Designed to be slow</td>
+      </tr>
+      <tr>
+        <td class="name">yescrypt</td>
+        <td>variable</td>
+        <td class="ex">$y$</td>
+        <td>very slow</td>
+        <td class="ok">★ Modern Kali default</td>
+      </tr>
+      <tr>
+        <td class="name">NTLM</td>
+        <td>128-bit / 32 hex</td>
+        <td class="ex">(Windows SAM)</td>
+        <td>350 billion/sec</td>
+        <td class="er">⚠ Fast — weak for passwords</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="alert warn">
+    <div class="alert-icon">⚠️</div>
+    <div>
+      <div class="alert-title">Speed is the Enemy</div>
+      <div class="alert-body">For passwords, <strong>slow is good</strong>. MD5 was designed to be fast (for checksums) — that's why it's terrible for passwords. bcrypt was designed specifically for passwords and is intentionally slow. A hash that takes 1ms vs 1μs means 1000x fewer guesses per second for an attacker.</div>
+    </div>
+  </div>
+
+  <h3>Kali — Compute Hashes</h3>
+  <div class="cb">
+    <div class="cb-bar"><span class="cb-title">Hash Generation</span><span class="cb-tag t-kali">KALI</span></div>
+    <pre><span class="cm"># MD5</span>
+<span class="kw">echo</span> <span class="arg">-n</span> <span class="val">"password"</span> | <span class="kw">md5sum</span>
+<span class="out">5f4dcc3b5aa765d61d8327deb882cf99  -</span>
+
+<span class="cm"># SHA-1</span>
+<span class="kw">echo</span> <span class="arg">-n</span> <span class="val">"password"</span> | <span class="kw">sha1sum</span>
+<span class="out">5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8  -</span>
+
+<span class="cm"># SHA-256</span>
+<span class="kw">echo</span> <span class="arg">-n</span> <span class="val">"password"</span> | <span class="kw">sha256sum</span>
+<span class="out">5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8  -</span>
+
+<span class="cm"># SHA-512</span>
+<span class="kw">echo</span> <span class="arg">-n</span> <span class="val">"password"</span> | <span class="kw">sha512sum</span>
+
+<span class="cm"># Generate /etc/shadow style hash (sha512crypt)</span>
+<span class="kw">python3</span> <span class="arg">-c</span> <span class="val">"import crypt; print(crypt.crypt('password', crypt.mksalt(crypt.METHOD_SHA512)))"</span>
+<span class="out">$6$randomsalt$longhashhere...</span>
+
+<span class="cm"># Notice: -n flag strips the newline</span>
+<span class="cm"># Without -n: echo adds \n → different hash!</span>
+<span class="kw">echo</span> <span class="val">"password"</span> | <span class="kw">md5sum</span>   <span class="cm"># WRONG — includes newline</span>
+<span class="kw">echo</span> <span class="arg">-n</span> <span class="val">"password"</span> | <span class="kw">md5sum</span> <span class="cm"># CORRECT</span></pre>
+  </div>
+</div>
+
+<!-- SECTION 3: ENCODING -->
+<div class="sec" id="encoding">
+  <div class="sec-tag">// 03</div>
+  <h2>Encoding vs <span class="g">Hashing</span></h2>
+  <div class="sec-intro">Encoding is NOT hashing and NOT encryption. It's a reversible transformation with no key. Anyone can decode it. You'll see it everywhere in CTFs and web hacking.</div>
+
+  <div class="concept-grid">
+    <div class="concept-card cc-cyan">
+      <div class="concept-icon">🔄</div>
+      <div class="concept-title">Encoding</div>
+      <div class="concept-body">Reversible transformation with no key. Purpose: data transport/representation, not security. Base64, hex, URL encoding, ROT13.</div>
+      <div class="concept-tag ct-cyan">reversible, no key</div>
+    </div>
+    <div class="concept-card cc-red">
+      <div class="concept-icon">🔒</div>
+      <div class="concept-title">Hashing</div>
+      <div class="concept-body">One-way transformation. No key needed, cannot be reversed. Purpose: integrity checking, password storage.</div>
+      <div class="concept-tag ct-red">irreversible</div>
+    </div>
+    <div class="concept-card cc-purple">
+      <div class="concept-icon">🗝️</div>
+      <div class="concept-title">Encryption</div>
+      <div class="concept-body">Reversible transformation WITH a key. Without the key, you can't decrypt. Purpose: confidentiality. AES, RSA.</div>
+      <div class="concept-tag ct-yellow">reversible with key</div>
+    </div>
+    <div class="concept-card cc-green">
+      <div class="concept-icon">📋</div>
+      <div class="concept-title">The Key Test</div>
+      <div class="concept-body">Ask: "Do I need a key to reverse this?" No key needed → encoding. Key needed → encryption. Can't reverse → hashing.</div>
+      <div class="concept-tag ct-green">identification</div>
+    </div>
+  </div>
+
+  <h3>Interactive Encoder/Decoder</h3>
+  <div class="enc-demo">
+    <div class="enc-tabs">
+      <button class="enc-tab active" onclick="setEncMode('base64')">Base64</button>
+      <button class="enc-tab" onclick="setEncMode('hex')">Hex</button>
+      <button class="enc-tab" onclick="setEncMode('rot13')">ROT13</button>
+      <button class="enc-tab" onclick="setEncMode('url')">URL</button>
+      <button class="enc-tab" onclick="setEncMode('binary')">Binary</button>
+    </div>
+    <div class="enc-io">
+      <div class="enc-field">
+        <div class="ef-label">Input</div>
+        <textarea class="ef-input" id="encInput" rows="2" placeholder="Type something...">hello world</textarea>
+      </div>
+      <div class="enc-arrow" id="encArrow">→</div>
+      <div class="enc-field">
+        <div class="ef-label">Output</div>
+        <div class="enc-output" id="encOutput">aGVsbG8gd29ybGQ=</div>
+      </div>
+    </div>
+    <div class="enc-buttons">
+      <button class="enc-btn eb-encode" onclick="doEncode()">Encode →</button>
+      <button class="enc-btn eb-decode" onclick="doDecode()">← Decode</button>
+      <button class="enc-btn eb-clear" onclick="clearEnc()">Clear</button>
+    </div>
+    <div id="encMode" style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:10px;letter-spacing:1px;"></div>
+  </div>
+
+  <table class="enc-table">
+    <thead><tr><th>Encoding</th><th>Looks Like</th><th>How to Spot</th><th>Reverse In Kali</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="name">Base64</td>
+        <td class="ex">aGVsbG8gd29ybGQ=</td>
+        <td>A-Z a-z 0-9 +/= chars, ends with =</td>
+        <td class="rev">echo "..." | base64 -d</td>
+      </tr>
+      <tr>
+        <td class="name">Hex</td>
+        <td class="ex">68656c6c6f</td>
+        <td>Only 0-9 and a-f, even length</td>
+        <td class="rev">echo "68656c6c6f" | xxd -r -p</td>
+      </tr>
+      <tr>
+        <td class="name">ROT13</td>
+        <td class="ex">uryyb jbeyq</td>
+        <td>Looks like garbled English</td>
+        <td class="rev">echo "..." | tr 'A-Za-z' 'N-ZA-Mn-za-m'</td>
+      </tr>
+      <tr>
+        <td class="name">URL Encoding</td>
+        <td class="ex">hello%20world</td>
+        <td>% followed by hex digits</td>
+        <td class="rev">python3 -c "import urllib.parse; print(urllib.parse.unquote('...'))"</td>
+      </tr>
+      <tr>
+        <td class="name">Binary</td>
+        <td class="ex">01101000 01100101</td>
+        <td>Only 0s and 1s, groups of 8</td>
+        <td class="rev">python3 -c "print(bytes([int(x,2) for x in '...'.split()]))"</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="cb">
+    <div class="cb-bar"><span class="cb-title">Encoding on Kali</span><span class="cb-tag t-kali">KALI</span></div>
+    <pre><span class="cm"># Base64 encode</span>
+<span class="kw">echo</span> <span class="arg">-n</span> <span class="val">"hello world"</span> | <span class="kw">base64</span>
+<span class="out">aGVsbG8gd29ybGQ=</span>
+
+<span class="cm"># Base64 decode</span>
+<span class="kw">echo</span> <span class="val">"aGVsbG8gd29ybGQ="</span> | <span class="kw">base64 -d</span>
+<span class="out">hello world</span>
+
+<span class="cm"># Hex encode</span>
+<span class="kw">echo</span> <span class="arg">-n</span> <span class="val">"hello"</span> | <span class="kw">xxd -p</span>
+<span class="out">68656c6c6f</span>
+
+<span class="cm"># Hex decode</span>
+<span class="kw">echo</span> <span class="val">"68656c6c6f"</span> | <span class="kw">xxd -r -p</span>
+<span class="out">hello</span>
+
+<span class="cm"># ROT13</span>
+<span class="kw">echo</span> <span class="val">"hello"</span> | <span class="kw">tr</span> <span class="val">'A-Za-z'</span> <span class="val">'N-ZA-Mn-za-m'</span>
+<span class="out">uryyb</span>
+
+<span class="cm"># ROT13 is its own inverse — run again to decode</span>
+<span class="kw">echo</span> <span class="val">"uryyb"</span> | <span class="kw">tr</span> <span class="val">'A-Za-z'</span> <span class="val">'N-ZA-Mn-za-m'</span>
+<span class="out">hello</span>
+
+<span class="cm"># Identify unknown encoding — CyberChef magic (browser tool)</span>
+<span class="cm"># Or use: file, strings, xxd to inspect unknown data</span></pre>
+  </div>
+</div>
+
+<!-- SECTION 4: ENCRYPTION -->
+<div class="sec" id="encryption">
+  <div class="sec-tag">// 04</div>
+  <h2>Encryption <span class="y">Basics</span></h2>
+  <div class="sec-intro">Encryption is reversible with a key. Two types: symmetric (same key to encrypt/decrypt) and asymmetric (public key encrypts, private key decrypts). You'll encounter both in CTFs.</div>
+
+  <div class="concept-grid">
+    <div class="concept-card cc-cyan">
+      <div class="concept-icon">🔑</div>
+      <div class="concept-title">Symmetric — AES</div>
+      <div class="concept-body">Same key encrypts and decrypts. Fast, used for bulk data. AES-256 is the standard. The challenge: how do you share the key securely?</div>
+      <div class="concept-tag ct-cyan">one key</div>
+    </div>
+    <div class="concept-card cc-purple">
+      <div class="concept-icon">🗝️🔐</div>
+      <div class="concept-title">Asymmetric — RSA</div>
+      <div class="concept-body">Public key encrypts (anyone can have it). Private key decrypts (only you have it). Solves the key sharing problem. Slower than AES.</div>
+      <div class="concept-tag ct-yellow">public/private pair</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-bar"><span class="cb-title">Encryption on Kali</span><span class="cb-tag t-kali">KALI</span></div>
+    <pre><span class="cm"># AES symmetric encryption with openssl</span>
+<span class="kw">echo</span> <span class="val">"secret message"</span> | <span class="kw">openssl enc</span> <span class="arg">-aes-256-cbc</span> <span class="arg">-base64</span> <span class="arg">-k</span> <span class="val">"mypassword"</span>
+<span class="out">U2FsdGVkX1+... (encrypted base64 output)</span>
+
+<span class="cm"># Decrypt it</span>
+<span class="kw">echo</span> <span class="val">"U2FsdGVkX1+..."</span> | <span class="kw">openssl enc</span> <span class="arg">-aes-256-cbc</span> <span class="arg">-d</span> <span class="arg">-base64</span> <span class="arg">-k</span> <span class="val">"mypassword"</span>
+<span class="out">secret message</span>
+
+<span class="cm"># Generate RSA key pair</span>
+<span class="kw">openssl genrsa</span> <span class="arg">-out</span> private.pem <span class="val">2048</span>
+<span class="kw">openssl rsa</span> <span class="arg">-in</span> private.pem <span class="arg">-pubout</span> <span class="arg">-out</span> public.pem
+
+<span class="cm"># Encrypt with public key</span>
+<span class="kw">echo</span> <span class="val">"hello"</span> | <span class="kw">openssl rsautl</span> <span class="arg">-encrypt</span> <span class="arg">-pubin</span> <span class="arg">-inkey</span> public.pem | <span class="kw">base64</span>
+
+<span class="cm"># In CTFs: you'll often find .pem files, encrypted files</span>
+<span class="cm"># Goal: find the private key → decrypt the file → get the flag</span></pre>
+  </div>
+
+  <div class="alert info">
+    <div class="alert-icon">💡</div>
+    <div>
+      <div class="alert-title">SSH Uses Both</div>
+      <div class="alert-body">When you SSH into a server, it uses <strong>asymmetric RSA/ECDSA</strong> to authenticate and exchange keys, then switches to <strong>symmetric AES</strong> for the actual session data. Your <code>~/.ssh/id_rsa</code> is a private key — that's why it must be <code>chmod 600</code>.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5: SALTING -->
+<div class="sec" id="salting">
+  <div class="sec-tag">// 05</div>
+  <h2>Salting — Why <span class="c">Same Password</span> ≠ Same Hash</h2>
+  <div class="sec-intro">A salt is a random value added to a password before hashing. Even if two users have the same password, their hashes will be completely different. Defeats rainbow tables and pre-computation attacks.</div>
+
+  <div class="salt-demo">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;">// Three users, same password "password123", different salts</div>
+    <div class="salt-row">
+      <div class="sr-box sr-pass">password123</div>
+      <div class="sr-arrow">+</div>
+      <div class="sr-box sr-salt">$6$<span style="color:#ff8c00">aBc123</span>$</div>
+      <div class="sr-arrow">→</div>
+      <div class="sr-box sr-hash">$6$aBc123$x9Km2pL...</div>
+    </div>
+    <div class="salt-row">
+      <div class="sr-box sr-pass">password123</div>
+      <div class="sr-arrow">+</div>
+      <div class="sr-box sr-salt">$6$<span style="color:#ff8c00">xYz789</span>$</div>
+      <div class="sr-arrow">→</div>
+      <div class="sr-box sr-hash">$6$xYz789$mQ7nRv3...</div>
+    </div>
+    <div class="salt-row">
+      <div class="sr-box sr-pass">password123</div>
+      <div class="sr-arrow">+</div>
+      <div class="sr-box sr-salt">$6$<span style="color:#ff8c00">pQr456</span>$</div>
+      <div class="sr-arrow">→</div>
+      <div class="sr-box sr-hash">$6$pQr456$vB2wKj9...</div>
+    </div>
+    <div class="salt-note">// The salt is stored IN the hash (after $6$) — the system reads it back to verify your password. The salt is NOT secret — its purpose is uniqueness, not secrecy.</div>
+  </div>
+
+  <h3>What Salting Defeats</h3>
+  <div class="concept-grid">
+    <div class="concept-card cc-green">
+      <div class="concept-icon">🌈</div>
+      <div class="concept-title">Rainbow Tables</div>
+      <div class="concept-body">Pre-computed hash→password lookup tables. Without salting, you'd just look up "5f4dcc3b..." and instantly get "password". Salting makes every hash unique so pre-computation is useless.</div>
+      <div class="concept-tag ct-green">defeated by salt</div>
+    </div>
+    <div class="concept-card cc-green">
+      <div class="concept-icon">👥</div>
+      <div class="concept-title">Bulk Cracking</div>
+      <div class="concept-body">Without salts, if two users have the same password, cracking one cracks both. With salts, you must crack each hash individually — multiplies attacker's work by number of hashes.</div>
+      <div class="concept-tag ct-green">defeated by salt</div>
+    </div>
+  </div>
+
+  <div class="cb">
+    <div class="cb-bar"><span class="cb-title">Salting on Kali</span><span class="cb-tag t-kali">KALI</span></div>
+    <pre><span class="cm"># Same password, different salts = different hashes</span>
+<span class="kw">openssl passwd</span> <span class="arg">-6</span> <span class="arg">-salt</span> <span class="val">AAAA</span> <span class="val">"password123"</span>
+<span class="out">$6$AAAA$hash1here...</span>
+
+<span class="kw">openssl passwd</span> <span class="arg">-6</span> <span class="arg">-salt</span> <span class="val">BBBB</span> <span class="val">"password123"</span>
+<span class="out">$6$BBBB$totallydifferenthash...</span>
+
+<span class="cm"># The $6$SALT$ part is stored in /etc/shadow</span>
+<span class="cm"># When you type password at login:</span>
+<span class="cm"># system reads the salt from stored hash</span>
+<span class="cm"># hashes(your_input + salt)</span>
+<span class="cm"># compares result to stored hash</span>
+
+<span class="cm"># Verify a password against its hash</span>
+<span class="kw">python3</span> <span class="arg">-c</span> <span class="val">"
+import crypt
+stored = '\$6\$AAAA\$hash1here...'
+attempt = 'password123'
+print(crypt.crypt(attempt, stored) == stored)
+"</span>
+<span class="out">True</span></pre>
+  </div>
+</div>
+
+<!-- SECTION 6: CRACKING -->
+<div class="sec" id="cracking">
+  <div class="sec-tag">// 06</div>
+  <h2>Cracking — <span class="c">Full Workflow</span></h2>
+  <div class="sec-intro">Connecting everything together — identify the hash type, choose the right tool and attack mode, crack it, use it.</div>
+
+  <div class="cb">
+    <div class="cb-bar"><span class="cb-title">Step 1 — Identify Hash Type</span><span class="cb-tag t-kali">KALI</span></div>
+    <pre><span class="cm"># Method 1: hashid (with hashcat mode -m flag)</span>
+<span class="kw">hashid</span> <span class="arg">-m</span> <span class="val">'5f4dcc3b5aa765d61d8327deb882cf99'</span>
+<span class="ok">[+] MD5 [Hashcat Mode: 0]</span>
+
+<span class="kw">hashid</span> <span class="arg">-m</span> <span class="val">'$6$salt$hash'</span>
+<span class="ok">[+] SHA-512 Crypt [Hashcat Mode: 1800]</span>
+
+<span class="cm"># Method 2: hash-identifier tool</span>
+<span class="kw">hash-identifier</span>
+<span class="out">Enter hash: 5f4dcc3b5aa765d61d8327deb882cf99</span>
+<span class="out">MD5</span>
+
+<span class="cm"># Method 3: Count characters</span>
+<span class="cm"># 32 chars  = MD5</span>
+<span class="cm"># 40 chars  = SHA-1</span>
+<span class="cm"># 64 chars  = SHA-256</span>
+<span class="cm"># 128 chars = SHA-512</span>
+<span class="cm"># $2b$...   = bcrypt (always 60 chars)</span>
+<span class="cm"># $6$...    = sha512crypt (Linux shadow)</span></pre>
+  </div>
+
+  <div class="cb">
+    <div class="cb-bar"><span class="cb-title">Step 2 — Crack With John</span><span class="cb-tag t-kali">KALI</span></div>
+    <pre><span class="cm"># Create hash file</span>
+<span class="kw">echo</span> <span class="val">"5f4dcc3b5aa765d61d8327deb882cf99"</span> > hash.txt
+
+<span class="cm"># Auto-detect + crack</span>
+<span class="kw">john</span> hash.txt <span class="arg">--wordlist=</span>/usr/share/wordlists/rockyou.txt <span class="arg">--format=</span>raw-md5
+<span class="ok">password         (hash.txt)</span>
+
+<span class="cm"># Show result</span>
+<span class="kw">john</span> hash.txt <span class="arg">--show</span> <span class="arg">--format=</span>raw-md5
+<span class="ok">?:password</span></pre>
+  </div>
+
+  <div class="cb">
+    <div class="cb-bar"><span class="cb-title">Step 3 — Crack With Hashcat</span><span class="cb-tag t-kali">KALI</span></div>
+    <pre><span class="cm"># Same MD5 with hashcat</span>
+<span class="kw">hashcat</span> <span class="arg">-m</span> <span class="val">0</span> hash.txt /usr/share/wordlists/rockyou.txt
+<span class="ok">5f4dcc3b5aa765d61d8327deb882cf99:password</span>
+
+<span class="cm"># Shadow-style SHA-512</span>
+<span class="kw">hashcat</span> <span class="arg">-m</span> <span class="val">1800</span> shadow_hash.txt /usr/share/wordlists/rockyou.txt
+<span class="kw">hashcat</span> <span class="arg">-m</span> <span class="val">1800</span> shadow_hash.txt /usr/share/wordlists/rockyou.txt <span class="arg">-r</span> /usr/share/hashcat/rules/best64.rule
+
+<span class="cm"># View all cracked</span>
+<span class="kw">hashcat</span> <span class="arg">-m</span> <span class="val">0</span> hash.txt <span class="arg">--show</span></pre>
+  </div>
+</div>
+
+<!-- SECTION 7: CHALLENGES -->
+<div class="sec" id="practice">
+  <div class="sec-tag">// 07</div>
+  <h2>Crack These <span class="c">Hashes</span></h2>
+  <div class="sec-intro">Real hashes — same style as TryHackMe "Crack the Hash" room. Use John or Hashcat on Kali. Type the answer below each one. Answers are common passwords.</div>
+
+  <div class="progress-bar">
+    <div class="progress-label">Progress</div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-count" id="progressCount">0 / 7 cracked</div>
+  </div>
+
+  <!-- Challenge 1 -->
+  <div class="challenge">
+    <div class="challenge-header">
+      <div class="challenge-title">Challenge 1</div>
+      <div class="challenge-badge badge-easy">Easy · MD5</div>
+    </div>
+    <div class="challenge-hash">482c811da5d5b4bc6d497ffa98491e38</div>
+    <div class="challenge-hint">Hashcat: -m 0 | John: --format=raw-md5 | Hint: you used this hash earlier today</div>
+    <div class="challenge-input-row">
+      <input class="challenge-input" id="c1" type="text" placeholder="Enter cracked password...">
+      <button class="hint-btn" onclick="showHint(1,'password123')">Reveal</button>
+      <button class="check-btn" onclick="checkAnswer(1,'password123')">Check</button>
+    </div>
+    <div class="challenge-result" id="cr1"></div>
+  </div>
+
+  <!-- Challenge 2 -->
+  <div class="challenge">
+    <div class="challenge-header">
+      <div class="challenge-title">Challenge 2</div>
+      <div class="challenge-badge badge-easy">Easy · MD5</div>
+    </div>
+    <div class="challenge-hash">b7a875fc1ea228b9061041b559fe20f5</div>
+    <div class="challenge-hint">Hashcat: -m 0 | In rockyou.txt</div>
+    <div class="challenge-input-row">
+      <input class="challenge-input" id="c2" type="text" placeholder="Enter cracked password...">
+      <button class="hint-btn" onclick="showHint(2,'letmein')">Reveal</button>
+      <button class="check-btn" onclick="checkAnswer(2,'letmein')">Check</button>
+    </div>
+    <div class="challenge-result" id="cr2"></div>
+  </div>
+
+  <!-- Challenge 3 -->
+  <div class="challenge">
+    <div class="challenge-header">
+      <div class="challenge-title">Challenge 3</div>
+      <div class="challenge-badge badge-easy">Easy · SHA-1</div>
+    </div>
+    <div class="challenge-hash">aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d</div>
+    <div class="challenge-hint">40 characters = SHA-1 | Hashcat: -m 100 | John: --format=raw-sha1</div>
+    <div class="challenge-input-row">
+      <input class="challenge-input" id="c3" type="text" placeholder="Enter cracked password...">
+      <button class="hint-btn" onclick="showHint(3,'h')">Reveal</button>
+      <button class="check-btn" onclick="checkAnswer(3,'h')">Check</button>
+    </div>
+    <div class="challenge-result" id="cr3"></div>
+  </div>
+
+  <!-- Challenge 4 -->
+  <div class="challenge">
+    <div class="challenge-header">
+      <div class="challenge-title">Challenge 4</div>
+      <div class="challenge-badge badge-medium">Medium · SHA-256</div>
+    </div>
+    <div class="challenge-hash">8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92</div>
+    <div class="challenge-hint">64 characters = SHA-256 | Hashcat: -m 1400 | John: --format=raw-sha256</div>
+    <div class="challenge-input-row">
+      <input class="challenge-input" id="c4" type="text" placeholder="Enter cracked password...">
+      <button class="hint-btn" onclick="showHint(4,'123456')">Reveal</button>
+      <button class="check-btn" onclick="checkAnswer(4,'123456')">Check</button>
+    </div>
+    <div class="challenge-result" id="cr4"></div>
+  </div>
+
+  <!-- Challenge 5 -->
+  <div class="challenge">
+    <div class="challenge-header">
+      <div class="challenge-title">Challenge 5 — Decode First</div>
+      <div class="challenge-badge badge-easy">Easy · Base64 → MD5</div>
+    </div>
+    <div class="challenge-hash">NWYzYTZiMGIwZjI2ZjU0OWE1ODQ5N2VjZDVkNGQyZTE=</div>
+    <div class="challenge-hint">This is Base64 encoded. Decode it first: echo "..." | base64 -d → then crack the MD5 you get</div>
+    <div class="challenge-input-row">
+      <input class="challenge-input" id="c5" type="text" placeholder="Enter cracked password (after decode+crack)...">
+      <button class="hint-btn" onclick="showHint(5,'secret')">Reveal</button>
+      <button class="check-btn" onclick="checkAnswer(5,'secret')">Check</button>
+    </div>
+    <div class="challenge-result" id="cr5"></div>
+  </div>
+
+  <!-- Challenge 6 -->
+  <div class="challenge">
+    <div class="challenge-header">
+      <div class="challenge-title">Challenge 6 — ROT13</div>
+      <div class="challenge-badge badge-easy">Easy · ROT13</div>
+    </div>
+    <div class="challenge-hash">cnffjbeq</div>
+    <div class="challenge-hint">This is ROT13 encoded — not a hash. Decode it: echo "cnffjbeq" | tr 'A-Za-z' 'N-ZA-Mn-za-m'</div>
+    <div class="challenge-input-row">
+      <input class="challenge-input" id="c6" type="text" placeholder="Enter decoded text...">
+      <button class="hint-btn" onclick="showHint(6,'password')">Reveal</button>
+      <button class="check-btn" onclick="checkAnswer(6,'password')">Check</button>
+    </div>
+    <div class="challenge-result" id="cr6"></div>
+  </div>
+
+  <!-- Challenge 7 -->
+  <div class="challenge">
+    <div class="challenge-header">
+      <div class="challenge-title">Challenge 7 — SHA-512 (Hard)</div>
+      <div class="challenge-badge badge-hard">Hard · SHA-512</div>
+    </div>
+    <div class="challenge-hash">b109f3bbbc244eb82441917ed06d618b9008dd09b3befd1b5e07394c706a8bb980b1d7785e5976ec049b46df5f1326af5a2ea6d103fd07c95385ffab0cacbc86</div>
+    <div class="challenge-hint">128 chars = SHA-512 | Hashcat: -m 1700 | John: --format=raw-sha512 | Very common word</div>
+    <div class="challenge-input-row">
+      <input class="challenge-input" id="c7" type="text" placeholder="Enter cracked password...">
+      <button class="hint-btn" onclick="showHint(7,'password')">Reveal</button>
+      <button class="check-btn" onclick="checkAnswer(7,'password')">Check</button>
+    </div>
+    <div class="challenge-result" id="cr7"></div>
+  </div>
+
+</div>
+
+<footer>HASHING & CRYPTO 101 · THM PREMIUM REPLACEMENT · KALI HANDS-ON</footer>
+</div>
+
+<script>
+// ─── HASH FUNCTIONS (using SubtleCrypto API) ───
+async function sha(algo, msg) {
+  const enc = new TextEncoder();
+  const buf = await crypto.subtle.digest(algo, enc.encode(msg));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// MD5 implementation (pure JS — SubtleCrypto doesn't support MD5)
+function md5(s) {
+  function safeAdd(x,y){var lsw=(x&0xffff)+(y&0xffff);var msw=(x>>16)+(y>>16)+(lsw>>16);return(msw<<16)|(lsw&0xffff)}
+  function bitRotateLeft(num,cnt){return(num<<cnt)|(num>>>(32-cnt))}
+  function md5cmn(q,a,b,x,s,t){return safeAdd(bitRotateLeft(safeAdd(safeAdd(a,q),safeAdd(x,t)),s),b)}
+  function md5ff(a,b,c,d,x,s,t){return md5cmn((b&c)|((~b)&d),a,b,x,s,t)}
+  function md5gg(a,b,c,d,x,s,t){return md5cmn((b&d)|(c&(~d)),a,b,x,s,t)}
+  function md5hh(a,b,c,d,x,s,t){return md5cmn(b^c^d,a,b,x,s,t)}
+  function md5ii(a,b,c,d,x,s,t){return md5cmn(c^(b|(~d)),a,b,x,s,t)}
+  var i,x=Array(Math.ceil((s.length+8)/64)*16+2),S=s.length*8,j=0;
+  var M=new Array(Math.ceil((s.length+8)/64)*16);
+  for(i=0;i<M.length;i++)M[i]=0;
+  for(i=0;i<s.length;i++)M[i>>2]|=s.charCodeAt(i)<<((i%4)*8);
+  M[i>>2]|=0x80<<((i%4)*8);
+  M[M.length-2]=S&0xffffffff;M[M.length-1]=Math.floor(S/0x100000000);
+  var a=0x67452301,b=0xefcdab89,c=0x98badcfe,d=0x10325476;
+  for(i=0;i<M.length;i+=16){
+    var aa=a,bb=b,cc=c,dd=d;
+    a=md5ff(a,b,c,d,M[i+0],7,-680876936);d=md5ff(d,a,b,c,M[i+1],12,-389564586);
+    c=md5ff(c,d,a,b,M[i+2],17,606105819);b=md5ff(b,c,d,a,M[i+3],22,-1044525330);
+    a=md5ff(a,b,c,d,M[i+4],7,-176418897);d=md5ff(d,a,b,c,M[i+5],12,1200080426);
+    c=md5ff(c,d,a,b,M[i+6],17,-1473231341);b=md5ff(b,c,d,a,M[i+7],22,-45705983);
+    a=md5ff(a,b,c,d,M[i+8],7,1770035416);d=md5ff(d,a,b,c,M[i+9],12,-1958414417);
+    c=md5ff(c,d,a,b,M[i+10],17,-42063);b=md5ff(b,c,d,a,M[i+11],22,-1990404162);
+    a=md5ff(a,b,c,d,M[i+12],7,1804603682);d=md5ff(d,a,b,c,M[i+13],12,-40341101);
+    c=md5ff(c,d,a,b,M[i+14],17,-1502002290);b=md5ff(b,c,d,a,M[i+15],22,1236535329);
+    a=md5gg(a,b,c,d,M[i+1],5,-165796510);d=md5gg(d,a,b,c,M[i+6],9,-1069501632);
+    c=md5gg(c,d,a,b,M[i+11],14,643717713);b=md5gg(b,c,d,a,M[i+0],20,-373897302);
+    a=md5gg(a,b,c,d,M[i+5],5,-701558691);d=md5gg(d,a,b,c,M[i+10],9,38016083);
+    c=md5gg(c,d,a,b,M[i+15],14,-660478335);b=md5gg(b,c,d,a,M[i+4],20,-405537848);
+    a=md5gg(a,b,c,d,M[i+9],5,568446438);d=md5gg(d,a,b,c,M[i+14],9,-1019803690);
+    c=md5gg(c,d,a,b,M[i+3],14,-187363961);b=md5gg(b,c,d,a,M[i+8],20,1163531501);
+    a=md5gg(a,b,c,d,M[i+13],5,-1444681467);d=md5gg(d,a,b,c,M[i+2],9,-51403784);
+    c=md5gg(c,d,a,b,M[i+7],14,1735328473);b=md5gg(b,c,d,a,M[i+12],20,-1926607734);
+    a=md5hh(a,b,c,d,M[i+5],4,-378558);d=md5hh(d,a,b,c,M[i+8],11,-2022574463);
+    c=md5hh(c,d,a,b,M[i+11],16,1839030562);b=md5hh(b,c,d,a,M[i+14],23,-35309556);
+    a=md5hh(a,b,c,d,M[i+1],4,-1530992060);d=md5hh(d,a,b,c,M[i+4],11,1272893353);
+    c=md5hh(c,d,a,b,M[i+7],16,-155497632);b=md5hh(b,c,d,a,M[i+10],23,-1094730640);
+    a=md5hh(a,b,c,d,M[i+13],4,681279174);d=md5hh(d,a,b,c,M[i+0],11,-358537222);
+    c=md5hh(c,d,a,b,M[i+3],16,-722521979);b=md5hh(b,c,d,a,M[i+6],23,76029189);
+    a=md5hh(a,b,c,d,M[i+9],4,-640364487);d=md5hh(d,a,b,c,M[i+12],11,-421815835);
+    c=md5hh(c,d,a,b,M[i+15],16,530742520);b=md5hh(b,c,d,a,M[i+2],23,-995338651);
+    a=md5ii(a,b,c,d,M[i+0],6,-198630844);d=md5ii(d,a,b,c,M[i+7],10,1126891415);
+    c=md5ii(c,d,a,b,M[i+14],15,-1416354905);b=md5ii(b,c,d,a,M[i+5],21,-57434055);
+    a=md5ii(a,b,c,d,M[i+12],6,1700485571);d=md5ii(d,a,b,c,M[i+3],10,-1894986606);
+    c=md5ii(c,d,a,b,M[i+10],15,-1051523);b=md5ii(b,c,d,a,M[i+1],21,-2054922799);
+    a=md5ii(a,b,c,d,M[i+8],6,1873313359);d=md5ii(d,a,b,c,M[i+15],10,-30611744);
+    c=md5ii(c,d,a,b,M[i+6],15,-1560198380);b=md5ii(b,c,d,a,M[i+13],21,1309151649);
+    a=md5ii(a,b,c,d,M[i+4],6,-145523070);d=md5ii(d,a,b,c,M[i+11],10,-1120210379);
+    c=md5ii(c,d,a,b,M[i+2],15,718787259);b=md5ii(b,c,d,a,M[i+9],21,-343485551);
+    a=safeAdd(a,aa);b=safeAdd(b,bb);c=safeAdd(c,cc);d=safeAdd(d,dd);
+  }
+  return [a,b,c,d].map(n=>(n>>>0).toString(16).padStart(8,'0').match(/../g).map(h=>h.split('').reverse().join('')).join('')).join('');
+}
+
+// Compute and display hashes
+async function computeHashes() {
+  const input = document.getElementById('hashInput').value;
+  if (!input) {
+    ['md5','sha1','sha256','len'].forEach(id => {
+      const el = document.getElementById('r-'+id);
+      el.textContent = '—';
+      el.className = 'hr-value empty';
+    });
+    return;
+  }
+  document.getElementById('r-md5').textContent = md5(input);
+  document.getElementById('r-md5').className = 'hr-value';
+  document.getElementById('r-sha1').textContent = await sha('SHA-1', input);
+  document.getElementById('r-sha1').className = 'hr-value';
+  document.getElementById('r-sha256').textContent = await sha('SHA-256', input);
+  document.getElementById('r-sha256').className = 'hr-value';
+  document.getElementById('r-len').textContent = `Input: ${input.length} chars → MD5: 32 chars, SHA-256: 64 chars (always fixed)`;
+  updateAvalanche();
+}
+
+async function updateAvalanche() {
+  const h1 = await sha('SHA-256', 'password');
+  const h2 = await sha('SHA-256', 'Password');
+  document.getElementById('av1').textContent = h1;
+  document.getElementById('av2').textContent = h2;
+  let diff = 0;
+  for(let i=0;i<h1.length;i++) if(h1[i]!==h2[i]) diff++;
+  document.getElementById('av-note').textContent = `// ${diff} out of ${h1.length} characters differ (${Math.round(diff/h1.length*100)}%) — one character change, completely different hash`;
+}
+
+// ─── ENCODING DEMO ───
+let encMode = 'base64';
+function setEncMode(mode) {
+  encMode = mode;
+  document.querySelectorAll('.enc-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('encMode').textContent = `// mode: ${mode}`;
+  doEncode();
+}
+
+function doEncode() {
+  const input = document.getElementById('encInput').value;
+  let output = '';
+  try {
+    if (encMode === 'base64') output = btoa(unescape(encodeURIComponent(input)));
+    else if (encMode === 'hex') output = Array.from(new TextEncoder().encode(input)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    else if (encMode === 'rot13') output = input.replace(/[A-Za-z]/g, c => String.fromCharCode(c.charCodeAt(0) + (c.toLowerCase() < 'n' ? 13 : -13)));
+    else if (encMode === 'url') output = encodeURIComponent(input);
+    else if (encMode === 'binary') output = Array.from(new TextEncoder().encode(input)).map(b=>b.toString(2).padStart(8,'0')).join(' ');
+  } catch(e) { output = 'Error: ' + e.message; }
+  document.getElementById('encOutput').textContent = output;
+  document.getElementById('encArrow').textContent = '→';
+}
+
+function doDecode() {
+  const input = document.getElementById('encInput').value;
+  let output = '';
+  try {
+    if (encMode === 'base64') output = decodeURIComponent(escape(atob(input)));
+    else if (encMode === 'hex') output = new TextDecoder().decode(new Uint8Array(input.match(/../g).map(h=>parseInt(h,16))));
+    else if (encMode === 'rot13') output = input.replace(/[A-Za-z]/g, c => String.fromCharCode(c.charCodeAt(0) + (c.toLowerCase() < 'n' ? 13 : -13)));
+    else if (encMode === 'url') output = decodeURIComponent(input);
+    else if (encMode === 'binary') output = new TextDecoder().decode(new Uint8Array(input.split(/\s+/).map(b=>parseInt(b,2))));
+  } catch(e) { output = 'Error: ' + e.message; }
+  document.getElementById('encOutput').textContent = output;
+  document.getElementById('encArrow').textContent = '←';
+}
+
+function clearEnc() {
+  document.getElementById('encInput').value = '';
+  document.getElementById('encOutput').textContent = '';
+}
+
+// ─── CHALLENGES ───
+let cracked = 0;
+const solved = {};
+
+function checkAnswer(num, correct) {
+  const input = document.getElementById('c'+num);
+  const result = document.getElementById('cr'+num);
+  const val = input.value.trim().toLowerCase();
+  if (val === correct.toLowerCase()) {
+    input.className = 'challenge-input correct';
+    result.className = 'challenge-result cr-ok';
+    result.textContent = `✓ Correct! The password was "${correct}" — well cracked.`;
+    if (!solved[num]) { solved[num] = true; cracked++; updateProgress(); }
+  } else if (val === '') {
+    result.className = 'challenge-result cr-hint';
+    result.textContent = 'Enter your answer above, then click Check.';
+  } else {
+    input.className = 'challenge-input wrong';
+    result.className = 'challenge-result cr-no';
+    result.textContent = `✗ "${val}" is wrong. Run it through John or Hashcat on Kali.`;
+    setTimeout(() => input.className = 'challenge-input', 1000);
+  }
+}
+
+function showHint(num, answer) {
+  const result = document.getElementById('cr'+num);
+  result.className = 'challenge-result cr-hint';
+  result.textContent = `💡 Answer: "${answer}" — try to crack it yourself next time!`;
+  document.getElementById('c'+num).value = answer;
+  if (!solved[num]) { solved[num]=true; cracked++; updateProgress(); }
+}
+
+function updateProgress() {
+  const pct = Math.round(cracked/7*100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressCount').textContent = `${cracked} / 7 cracked`;
+}
+
+// ─── INIT ───
+window.addEventListener('load', () => {
+  computeHashes();
+  setEncMode('base64');
+  document.getElementById('encMode').textContent = '// mode: base64';
+});
+
+// Nav active state on scroll
+const sections = ['what','algos','encoding','encryption','salting','cracking','practice'];
+window.addEventListener('scroll', () => {
+  let current = 'what';
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && window.scrollY >= el.offsetTop - 100) current = id;
+  });
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.getAttribute('href') === '#'+current);
+  });
+});
+</script>
+</body>
+</html>
